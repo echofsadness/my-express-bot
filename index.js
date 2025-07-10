@@ -54,6 +54,14 @@ const commands = [
         .setDescription('The Roblox username')
         .setRequired(true)
     ),
+  new SlashCommandBuilder()
+  .setName('play')
+  .setDescription('เล่นเพลงจากชื่อหรือ YouTube ลิงก์')
+  .addStringOption(option =>
+    option.setName('query')
+      .setDescription('ชื่อเพลงหรือ YouTube URL')
+      .setRequired(true)
+  ),
 ].map(command => command.toJSON());
 
 // ลงทะเบียนคำสั่ง
