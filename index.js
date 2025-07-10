@@ -2,31 +2,36 @@ const { Client, GatewayIntentBits, ActivityType, SlashCommandBuilder, REST, Rout
 const noblox = require('noblox.js');
 require('dotenv').config();
 
-// Create bot client
+// ตรวจสอบ cookie
+const ROBLOX_COOKIE = process.env.ROBLOX_COOKIE;
+if (!ROBLOX_COOKIE) {
+  console.error('❌ Missing ROBLOX_COOKIE in .env file');
+  process.exit(1);
+}
+
+// สร้าง client discord
 const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
-// Login to Roblox on bot ready
+// เมื่อบอทพร้อมใช้งาน
 client.once('ready', async () => {
   console.log(`🤖 Logged in as ${client.user.tag}`);
 
-  // Set Discord bot status
   client.user.setPresence({
     activities: [{ name: 'the group', type: ActivityType.Watching }],
     status: 'online',
   });
 
-  // Authenticate with Roblox
   try {
-    await noblox.setCookie(process.env.ROBLOX_COOKIE);
+    await noblox.setCookie(ROBLOX_COOKIE);
     console.log('✅ Logged into Roblox');
   } catch (err) {
     console.error('❌ Roblox login failed:', err);
   }
 });
 
-// Slash command definitions
+// คำสั่ง Slash command
 const commands = [
   new SlashCommandBuilder()
     .setName('promote')
@@ -46,14 +51,14 @@ const commands = [
     ),
 ].map(command => command.toJSON());
 
-// Register slash commands
+// ลงทะเบียนคำสั่ง
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
 (async () => {
   try {
     console.log('🛠️ Registering slash commands...');
     await rest.put(
-      Routes.applicationCommands(process.env.CLIENT_ID,'1388484726838525952'),
+      Routes.applicationCommands(process.env.CLIENT_ID,'1388484726838525952'), // หรือเปลี่ยนเป็น ID application ของคุณ
       { body: commands }
     );
     console.log('✅ Slash commands registered');
@@ -62,7 +67,7 @@ const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
   }
 })();
 
-// Handle slash command interaction
+// ฟังคำสั่ง
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -89,5 +94,4 @@ client.on(Events.InteractionCreate, async interaction => {
   }
 });
 
-// Start bot
 client.login(process.env.TOKEN);
