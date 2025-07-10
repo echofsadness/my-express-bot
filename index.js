@@ -1,6 +1,8 @@
 const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes, Events } = require('discord.js');
 const { chromium } = require('playwright'); // ใช้ Playwright แทน Cookie
 const dotenv = require('dotenv');
+const puppeteer = require('puppeteer');
+const browser = await puppeteer.launch({ headless: true });
 dotenv.config();
 
 const client = new Client({
@@ -33,6 +35,17 @@ async function loginToRoblox() {
 
   console.log('✅ Logged into Roblox and got cookie.');
 }
+
+
+const { install } = require('playwright/install');
+
+(async () => {
+  try {
+    await install(); // Ensure browser installed
+  } catch (err) {
+    console.error('❌ Playwright browser install failed:', err);
+  }
+})();
 
 const commands = [
   new SlashCommandBuilder()
