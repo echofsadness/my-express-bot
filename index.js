@@ -1,6 +1,6 @@
-const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes, Events } = require('discord.js');
+import { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes, Events } from 'discord.js';
+import dotenv from 'dotenv';
 const { chromium } = require('playwright'); // ใช้ Playwright แทน Cookie
-const dotenv = require('dotenv');
 const puppeteer = require('puppeteer');
 const browser = await puppeteer.launch({ headless: true });
 dotenv.config();
