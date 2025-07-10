@@ -1,25 +1,15 @@
 {
-  "name": "my-express-bot",
+  "name": "discord-roblox-bot",
   "version": "1.0.0",
   "type": "module",
-  "main": "index.js",
   "scripts": {
-    "postinstall": "npx playwright install chromium",
-    "start": "node index.js"
+    "start": "node src/index.js",
+    "install:browsers": "npx playwright install"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
-    "playwright": "^1.45.0",
-    "express": "^5.1.0",
-    "discord.js": "^14.0.0",
-    "noblox.js": "^4.14.1",
+    "discord.js": "^14.12.1",
     "dotenv": "^16.3.1",
-    "@discordjs/voice": "^0.16.0",
-     "play-dl": "^1.8.9",
-    "ytdl-core": "^4.11.2",
-    "ytdl-core-discord": "^1.2.5"
+    "noblox.js": "^4.10.3",
+    "playwright": "^1.44.0"
   }
 }
