@@ -1,15 +1,13 @@
 {
-  "name": "discord-roblox-bot",
-  "version": "1.0.0",
-  "type": "module",
+  "type": "commonjs",
+  "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "install:browsers": "npx playwright install"
+    "start": "node index.js"
   },
   "dependencies": {
-    "discord.js": "^14.12.1",
-    "dotenv": "^16.3.1",
-    "noblox.js": "^4.10.3",
-    "playwright": "^1.44.0"
+    "discord.js": "^14.0.0",
+    "dotenv": "^16.0.0",
+    "noblox.js": "^4.14.0",
+    "puppeteer": "^21.3.8"
   }
 }
