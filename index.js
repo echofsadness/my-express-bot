@@ -24,6 +24,7 @@ client.once('ready', async () => {
   });
 
   try {
+    console.log('Cookie from env:', process.env.ROBLOX_COOKIE?.slice(0, 30)); // ตัดมาแค่ 30 ตัว
     await noblox.setCookie(ROBLOX_COOKIE);
     console.log('✅ Logged into Roblox');
   } catch (err) {
