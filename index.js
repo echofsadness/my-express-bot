@@ -42,8 +42,17 @@ const rest = new REST({ version: "10" }).setToken(DISCORD_TOKEN);
   }
 })();
 
-client.on("ready", () => {
-  console.log(`🤖 Logged in as ${client.user.tag}`);
+client.on('ready', () => {
+  console.log(`Logged in as ${client.user.tag}`);
+  client.user.setPresence({
+    activities: [
+      {
+        name: 'brave navy family',
+        type: Discord.ActivityType.Watching,
+      },
+    ],
+    status: 'online', 
+  });
 });
 
 client.on("interactionCreate", async interaction => {
