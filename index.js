@@ -1,6 +1,7 @@
 const { Client, GatewayIntentBits, ActivityType, SlashCommandBuilder, REST, Routes, Events } = require('discord.js');
 const noblox = require('noblox.js');
 require('dotenv').config();
+const express = require('express');
 
 // ตรวจสอบ cookie
 const ROBLOX_COOKIE = process.env.ROBLOX_COOKIE;
@@ -24,7 +25,7 @@ client.once('ready', async () => {
   });
 
   try {
-    console.log('Cookie from env:', process.env.ROBLOX_COOKIE?.slice(0, 30)); // ตัดมาแค่ 30 ตัว
+    console.log('Cookie from env:', ROBLOX_COOKIE?.slice(0, 30)); // ตัดมาแค่ 30 ตัว
     await noblox.setCookie(ROBLOX_COOKIE);
     console.log('✅ Logged into Roblox');
   } catch (err) {
@@ -59,7 +60,7 @@ const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
   try {
     console.log('🛠️ Registering slash commands...');
     await rest.put(
-      Routes.applicationCommands(process.env.CLIENT_ID,'1388484726838525952'), // หรือเปลี่ยนเป็น ID application ของคุณ
+      Routes.applicationCommands(process.env.CLIENT_ID), // ใช้แค่ CLIENT_ID ลง global commands
       { body: commands }
     );
     console.log('✅ Slash commands registered');
@@ -95,12 +96,13 @@ client.on(Events.InteractionCreate, async interaction => {
   }
 });
 
+// เริ่มบอท
 client.login(process.env.TOKEN);
 
-
-const express = require('express');
+// สร้าง Express app สำหรับ health check
 const app = express();
 
 app.get('/', (req, res) => res.send('Bot is running'));
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`API running on port ${PORT}`));
