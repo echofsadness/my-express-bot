@@ -2,8 +2,41 @@ const { Client, GatewayIntentBits, ActivityType, SlashCommandBuilder, REST, Rout
 const noblox = require('noblox.js');
 require('dotenv').config();
 const express = require('express');
-const { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus, NoSubscriberBehavior } = require('@discordjs/voice');
-const ytdl = require("ytdl-core-discord");
+const { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus, VoiceConnectionStatus, entersState } = require('@discordjs/voice');
+const playdl = require('play-dl');
+
+
+
+
+async function play(voiceChannel, query) {
+  const stream = await playdl.stream(query);
+  const resource = createAudioResource(stream.stream, {
+    inputType: stream.type
+  });
+
+  const connection = joinVoiceChannel({
+    channelId: voiceChannel.id,
+    guildId: voiceChannel.guild.id,
+    adapterCreator: voiceChannel.guild.voiceAdapterCreator
+  });
+
+  const player = createAudioPlayer();
+  player.play(resource);
+  connection.subscribe(player);
+
+  player.on(AudioPlayerStatus.Idle, () => {
+    connection.destroy();
+  });
+
+  player.on('error', err => {
+    console.error('Player error:', err);
+    connection.destroy();
+  });
+}
+
+
+
+
 
 
 // ตรวจสอบ cookie
@@ -83,6 +116,12 @@ const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
   }
 })();
 
+
+
+
+
+
+
 // ฟังคำสั่ง
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
@@ -97,47 +136,17 @@ client.on(Events.InteractionCreate, async interaction => {
     const query = interaction.options.getString('query');
     const voiceChannel = interaction.member.voice.channel;
 
-    console.log(interaction.member.voice);
     if (!voiceChannel) {
-      return interaction.reply({ content: '❌ คุณต้องอยู่ในห้องเสียงก่อนถึงจะเล่นเพลงได้!', ephemeral: true });
+      return interaction.reply({ content: '❌ เข้าห้องเสียงก่อนนะ', ephemeral: true });
     }
 
-    await interaction.deferReply();
-
+    await interaction.reply(`🎶 กำลังเล่น: ${query}`);
     try {
-      const connection = joinVoiceChannel({
-        channelId: voiceChannel.id,
-        guildId: voiceChannel.guild.id,
-        adapterCreator: voiceChannel.guild.voiceAdapterCreator,
-      });
-
-      const search = await play.search(query, { limit: 1 });
-      const streamInfo = await play.stream(search[0].url);
-      const resource = createAudioResource(streamInfo.stream, {
-        inputType: streamInfo.type,
-      });
-
-      const player = createAudioPlayer({
-        behaviors: {
-          noSubscriber: NoSubscriberBehavior.Pause,
-        },
-      });
-
-      player.play(resource);
-      connection.subscribe(player);
-
-      interaction.editReply(`🎶 กำลังเล่น: **${search[0].title}**`);
-
-      player.on(AudioPlayerStatus.Idle, () => {
-        connection.destroy();
-      });
-
+      await play(voiceChannel, query);
     } catch (err) {
       console.error(err);
-      interaction.editReply('❌ ไม่สามารถเล่นเพลงได้');
+      interaction.followUp({ content: '❌ เล่นเพลงไม่สำเร็จ', ephemeral: true });
     }
-
-    return;
   }
 
 
