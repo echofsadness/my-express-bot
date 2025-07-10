@@ -15,7 +15,10 @@ if (!ROBLOX_COOKIE) {
 
 // สร้าง client discord
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds]
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildVoiceStates
+  ]
 });
 
 // เมื่อบอทพร้อมใช้งาน
@@ -94,6 +97,7 @@ client.on(Events.InteractionCreate, async interaction => {
     const query = interaction.options.getString('query');
     const voiceChannel = interaction.member.voice.channel;
 
+    console.log(interaction.member.voice);
     if (!voiceChannel) {
       return interaction.reply({ content: '❌ คุณต้องอยู่ในห้องเสียงก่อนถึงจะเล่นเพลงได้!', ephemeral: true });
     }
