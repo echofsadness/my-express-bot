@@ -142,13 +142,15 @@ client.on(Events.InteractionCreate, async interaction => {
     if (!voiceChannel) {
       return interaction.reply({ content: '❌ เข้าห้องเสียงก่อนนะ', ephemeral: true });
     }
-    await interaction.reply(`🎶 กำลังเล่น: ${query}`);
     try {
-      await play(voiceChannel, query);
-    } catch (err) {
-      console.error(err);
-      await interaction.followUp({ content: '❌ เล่นเพลงไม่สำเร็จ', ephemeral: true });
-    }
+    await interaction.deferReply(); 
+    await play(voiceChannel, query);
+    await interaction.followUp(`🎶 กำลังเล่น: \`${query}\``);
+  } catch (err) {
+    console.error(err);
+    await interaction.followUp({ content: '❌ เกิดข้อผิดพลาดในการเล่นเพลง', ephemeral: true });
+  }
+
     
   }
 
