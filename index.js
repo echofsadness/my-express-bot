@@ -11,36 +11,29 @@ const playdl = require('play-dl');
 async function play(voiceChannel, query) {
   let url = query;
 
-  // ถ้าไม่ใช่ลิงก์ ให้ค้นหาจากชื่อ
+  // ถ้าไม่ใช่ลิงก์ ให้ค้นหา
   if (!playdl.yt_validate(query)) {
-    const searchResult = await playdl.search(query, { limit: 1 });
-    if (!searchResult || searchResult.length === 0) {
-      throw new Error('ไม่พบวิดีโอที่ต้องการ');
-    }
-    url = searchResult[0].url;
+    const results = await playdl.search(query, { limit: 1 });
+    if (results.length === 0) throw new Error('ไม่พบเพลง');
+    url = results[0].url;
   }
 
   const stream = await playdl.stream(url);
-  const resource = createAudioResource(stream.stream, {
-    inputType: stream.type
-  });
+  const resource = createAudioResource(stream.stream, { inputType: stream.type });
 
   const connection = joinVoiceChannel({
     channelId: voiceChannel.id,
     guildId: voiceChannel.guild.id,
-    adapterCreator: voiceChannel.guild.voiceAdapterCreator
+    adapterCreator: voiceChannel.guild.voiceAdapterCreator,
   });
 
   const player = createAudioPlayer();
   player.play(resource);
   connection.subscribe(player);
 
-  player.on(AudioPlayerStatus.Idle, () => {
-    connection.destroy();
-  });
-
-  player.on('error', err => {
-    console.error('Player error:', err);
+  player.on(AudioPlayerStatus.Idle, () => connection.destroy());
+  player.on('error', error => {
+    console.error('Player error:', error);
     connection.destroy();
   });
 }
