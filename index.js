@@ -9,7 +9,18 @@ const playdl = require('play-dl');
 
 
 async function play(voiceChannel, query) {
-  const stream = await playdl.stream(query);
+  let url = query;
+
+  // ถ้าไม่ใช่ลิงก์ ให้ค้นหาจากชื่อ
+  if (!playdl.yt_validate(query)) {
+    const searchResult = await playdl.search(query, { limit: 1 });
+    if (!searchResult || searchResult.length === 0) {
+      throw new Error('ไม่พบวิดีโอที่ต้องการ');
+    }
+    url = searchResult[0].url;
+  }
+
+  const stream = await playdl.stream(url);
   const resource = createAudioResource(stream.stream, {
     inputType: stream.type
   });
@@ -33,7 +44,6 @@ async function play(voiceChannel, query) {
     connection.destroy();
   });
 }
-
 
 
 
@@ -139,14 +149,14 @@ client.on(Events.InteractionCreate, async interaction => {
     if (!voiceChannel) {
       return interaction.reply({ content: '❌ เข้าห้องเสียงก่อนนะ', ephemeral: true });
     }
-
     await interaction.reply(`🎶 กำลังเล่น: ${query}`);
     try {
       await play(voiceChannel, query);
     } catch (err) {
       console.error(err);
-      interaction.followUp({ content: '❌ เล่นเพลงไม่สำเร็จ', ephemeral: true });
+      await interaction.followUp({ content: '❌ เล่นเพลงไม่สำเร็จ', ephemeral: true });
     }
+    
   }
 
 
