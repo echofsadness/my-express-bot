@@ -3,7 +3,8 @@ const noblox = require('noblox.js');
 require('dotenv').config();
 const express = require('express');
 const { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus, NoSubscriberBehavior } = require('@discordjs/voice');
-const play = require('play-dl');
+const ytdl = require("ytdl-core-discord");
+
 
 // ตรวจสอบ cookie
 const ROBLOX_COOKIE = process.env.ROBLOX_COOKIE;
