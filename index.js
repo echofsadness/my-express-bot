@@ -2,6 +2,8 @@ const { Client, GatewayIntentBits, ActivityType, SlashCommandBuilder, REST, Rout
 const noblox = require('noblox.js');
 require('dotenv').config();
 const express = require('express');
+const { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus, NoSubscriberBehavior } = require('@discordjs/voice');
+const play = require('play-dl');
 
 // ตรวจสอบ cookie
 const ROBLOX_COOKIE = process.env.ROBLOX_COOKIE;
@@ -76,6 +78,59 @@ client.on(Events.InteractionCreate, async interaction => {
   const username = interaction.options.getString('username');
   let userId;
 
+
+  const command = interaction.commandName;
+
+  if (command === 'play') {
+    const query = interaction.options.getString('query');
+    const voiceChannel = interaction.member.voice.channel;
+
+    if (!voiceChannel) {
+      return interaction.reply({ content: '❌ คุณต้องอยู่ในห้องเสียงก่อนถึงจะเล่นเพลงได้!', ephemeral: true });
+    }
+
+    await interaction.deferReply();
+
+    try {
+      const connection = joinVoiceChannel({
+        channelId: voiceChannel.id,
+        guildId: voiceChannel.guild.id,
+        adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+      });
+
+      const search = await play.search(query, { limit: 1 });
+      const streamInfo = await play.stream(search[0].url);
+      const resource = createAudioResource(streamInfo.stream, {
+        inputType: streamInfo.type,
+      });
+
+      const player = createAudioPlayer({
+        behaviors: {
+          noSubscriber: NoSubscriberBehavior.Pause,
+        },
+      });
+
+      player.play(resource);
+      connection.subscribe(player);
+
+      interaction.editReply(`🎶 กำลังเล่น: **${search[0].title}**`);
+
+      player.on(AudioPlayerStatus.Idle, () => {
+        connection.destroy();
+      });
+
+    } catch (err) {
+      console.error(err);
+      interaction.editReply('❌ ไม่สามารถเล่นเพลงได้');
+    }
+
+    return;
+  }
+
+
+
+  
+
   try {
     userId = await noblox.getIdFromUsername(username);
   } catch {
@@ -95,6 +150,8 @@ client.on(Events.InteractionCreate, async interaction => {
     interaction.reply({ content: '❌ Action failed. Make sure the bot has permission.', ephemeral: true });
   }
 });
+
+
 
 // เริ่มบอท
 client.login(process.env.TOKEN);
