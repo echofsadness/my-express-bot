@@ -76,7 +76,10 @@ const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
   }
 })();
 
-// 🤖 Bot ready
+
+
+
+
 client.once('ready', async () => {
   console.log(`🤖 Logged in as ${client.user.tag}`);
   try {
@@ -85,8 +88,12 @@ client.once('ready', async () => {
     console.log('🔐 Noblox session started');
   } catch (err) {
     console.error('❌ Roblox login failed:', err.message);
+    setTimeout(() => process.exit(1), 5000); // ให้ container รีสตาร์ท
   }
 });
+
+
+
 
 // 🎮 Handle commands
 client.on(Events.InteractionCreate, async interaction => {
