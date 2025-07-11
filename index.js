@@ -1,7 +1,7 @@
-const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes, Events } = require('discord.js');
-const dotenv = require('dotenv');
-const puppeteer = require('puppeteer');
-const noblox = require('noblox.js');
+import { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes, Events } from 'discord.js';
+import dotenv from 'dotenv';
+import { chromium } from 'playwright';
+import * as noblox from 'noblox.js';
 
 dotenv.config();
 
@@ -11,48 +11,60 @@ const client = new Client({
 
 let robloxToken = null;
 
-// ✅ Puppeteer login
+// 🔐 Login to Roblox with Playwright to get .ROBLOSECURITY
 async function loginToRoblox() {
-  const browser = await puppeteer.launch({
+  console.log('🌐 Logging into Roblox...');
+  const browser = await chromium.launch({
     headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
-  const page = await browser.newPage();
+  const context = await browser.newContext();
+  const page = await context.newPage();
 
   await page.goto('https://www.roblox.com/login');
-  await page.type('#login-username', process.env.ROBLOX_USER);
-  await page.type('#login-password', process.env.ROBLOX_PASS);
+
+  await page.fill('#login-username', process.env.ROBLOX_USER);
+  await page.fill('#login-password', process.env.ROBLOX_PASS);
   await page.click('#login-button');
 
-  await page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 15000 });
+  try {
+    await page.waitForURL('**/home', { timeout: 10000 });
+  } catch {
+    await browser.close();
+    throw new Error('❌ Login failed: Could not reach Roblox home page');
+  }
 
-  const cookies = await page.cookies();
+  const cookies = await context.cookies();
   const roblosecurity = cookies.find(c => c.name === '.ROBLOSECURITY');
-  robloxToken = roblosecurity?.value;
+  if (!roblosecurity) {
+    await browser.close();
+    throw new Error('❌ Login failed: .ROBLOSECURITY cookie not found');
+  }
 
+  robloxToken = roblosecurity.value;
   await browser.close();
-
-  if (!robloxToken) throw new Error('❌ ไม่พบ .ROBLOSECURITY');
-  console.log('✅ Logged into Roblox and got cookie.');
+  console.log('✅ Logged into Roblox and retrieved cookie.');
 }
 
+// 🛠️ Slash commands
 const commands = [
   new SlashCommandBuilder()
     .setName('promote')
-    .setDescription('Promote user in the group')
+    .setDescription('Promote a Roblox user in the group')
     .addStringOption(option =>
       option.setName('username')
         .setDescription('Roblox username')
         .setRequired(true)),
   new SlashCommandBuilder()
     .setName('demote')
-    .setDescription('Demote user in the group')
+    .setDescription('Demote a Roblox user in the group')
     .addStringOption(option =>
       option.setName('username')
         .setDescription('Roblox username')
-        .setRequired(true)),
-].map(cmd => cmd.toJSON());
+        .setRequired(true))
+].map(command => command.toJSON());
 
+// 📡 Register commands
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
 (async () => {
@@ -64,41 +76,45 @@ const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
   }
 })();
 
+// 🤖 Bot ready
 client.once('ready', async () => {
   console.log(`🤖 Logged in as ${client.user.tag}`);
   try {
     await loginToRoblox();
     await noblox.setCookie(robloxToken);
-    console.log('🔓 Logged into Noblox.js');
+    console.log('🔐 Noblox session started');
   } catch (err) {
     console.error('❌ Roblox login failed:', err.message);
   }
 });
 
+// 🎮 Handle commands
 client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
   const username = interaction.options.getString('username');
   let userId;
+
   try {
     userId = await noblox.getIdFromUsername(username);
   } catch {
-    return interaction.reply({ content: '❌ ไม่พบ username นี้', ephemeral: true });
+    return interaction.reply({ content: '❌ ไม่พบชื่อผู้ใช้ Roblox นี้', ephemeral: true });
   }
 
   try {
     let result;
     if (interaction.commandName === 'promote') {
       result = await noblox.promote(process.env.GROUP_ID, userId);
-      return interaction.reply(`✅ Promoted ${username} → ${result.newRole.name}`);
+      return interaction.reply(`✅ Promoted **${username}** to **${result.newRole.name}**`);
     } else if (interaction.commandName === 'demote') {
       result = await noblox.demote(process.env.GROUP_ID, userId);
-      return interaction.reply(`✅ Demoted ${username} → ${result.newRole.name}`);
+      return interaction.reply(`✅ Demoted **${username}** to **${result.newRole.name}**`);
     }
   } catch (err) {
     console.error(err);
-    return interaction.reply({ content: '❌ ไม่สามารถดำเนินการได้ อาจเป็นเพราะสิทธิ์ไม่พอ', ephemeral: true });
+    return interaction.reply({ content: '❌ ดำเนินการไม่ได้ อาจเกิดจากสิทธิ์ไม่เพียงพอหรือระบบล่ม', ephemeral: true });
   }
 });
 
+// 🚀 Start bot
 client.login(process.env.TOKEN);
