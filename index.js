@@ -1,50 +1,13 @@
 import { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes, Events } from 'discord.js';
 import dotenv from 'dotenv';
-import { chromium } from 'playwright';
 import * as noblox from 'noblox.js';
+import express from 'express';
 
 dotenv.config();
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
-
-let robloxToken = null;
-
-// 🔐 Login to Roblox with Playwright to get .ROBLOSECURITY
-async function loginToRoblox() {
-  console.log('🌐 Logging into Roblox...');
-  const browser = await chromium.launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
-  const context = await browser.newContext();
-  const page = await context.newPage();
-
-  await page.goto('https://www.roblox.com/login');
-
-  await page.fill('#login-username', process.env.ROBLOX_USER);
-  await page.fill('#login-password', process.env.ROBLOX_PASS);
-  await page.click('#login-button');
-
-  try {
-    await page.waitForURL('**/home', { timeout: 10000 });
-  } catch {
-    await browser.close();
-    throw new Error('❌ Login failed: Could not reach Roblox home page');
-  }
-
-  const cookies = await context.cookies();
-  const roblosecurity = cookies.find(c => c.name === '.ROBLOSECURITY');
-  if (!roblosecurity) {
-    await browser.close();
-    throw new Error('❌ Login failed: .ROBLOSECURITY cookie not found');
-  }
-
-  robloxToken = roblosecurity.value;
-  await browser.close();
-  console.log('✅ Logged into Roblox and retrieved cookie.');
-}
 
 // 🛠️ Slash commands
 const commands = [
@@ -76,24 +39,17 @@ const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
   }
 })();
 
-
-
-
-
+// 🤖 Bot ready
 client.once('ready', async () => {
   console.log(`🤖 Logged in as ${client.user.tag}`);
   try {
-    await loginToRoblox();
-    await noblox.setCookie(robloxToken);
+    await noblox.setCookie(process.env.ROBLOX_COOKIE);
     console.log('🔐 Noblox session started');
   } catch (err) {
     console.error('❌ Roblox login failed:', err.message);
     setTimeout(() => process.exit(1), 5000); // ให้ container รีสตาร์ท
   }
 });
-
-
-
 
 // 🎮 Handle commands
 client.on(Events.InteractionCreate, async interaction => {
@@ -123,7 +79,7 @@ client.on(Events.InteractionCreate, async interaction => {
   }
 });
 
-import express from 'express';
+// 🌐 Minimal Express web server (for uptime services or Render)
 const app = express();
 const PORT = process.env.PORT || 10000;
 
