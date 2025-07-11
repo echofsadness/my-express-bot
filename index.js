@@ -91,5 +91,9 @@ app.listen(PORT, () => {
   console.log(`🌐 Web server listening on port ${PORT}`);
 });
 
-// 🚀 Start bot
+console.log("🧪 Logging in with token:", process.env.TOKEN?.slice(0, 10), '...');
 client.login(process.env.TOKEN);
+client.on('error', console.error);
+client.on('shardError', console.error);
+process.on('unhandledRejection', console.error);
+
