@@ -1,17 +1,17 @@
-# ใช้ image ที่มี Chromium/Playwright
-FROM mcr.microsoft.com/playwright:v1.43.1-jammy
+# Base image
+FROM node:20
 
-# ตั้ง working dir
+# Set working directory
 WORKDIR /app
 
-# คัดลอกไฟล์ทั้งหมด
+# Copy everything
 COPY . .
 
-# ติดตั้ง dependency
-RUN npm install
+# Install dependencies
+RUN npm install && npx playwright install chromium
 
-# ติดตั้ง Chromium
-RUN npx playwright install --with-deps
+# Expose port for Render
+EXPOSE 10000
 
-# เริ่มรันบอท
+# Run the app
 CMD ["node", "index.js"]
