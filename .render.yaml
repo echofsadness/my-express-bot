@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: my-playwright-app
+    env: docker
+    repo: https://github.com/your-username/your-repo
+    region: oregon
+    branch: main
+    plan: free
+    dockerContext: .
+    dockerfilePath: ./Dockerfile
