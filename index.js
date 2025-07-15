@@ -102,3 +102,6 @@ app.listen(PORT, () => console.log(`🌐 Web server listening on port ${PORT}`))
 client.on('error', console.error);
 client.on('shardError', console.error);
 process.on('unhandledRejection', console.error);
+setInterval(() => {
+  console.log('🟢 Bot heartbeat');
+}, 60000);
