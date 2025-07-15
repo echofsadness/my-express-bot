@@ -36,11 +36,11 @@ async function registerCommands() {
 client.once('ready', async () => {
   console.log(`🤖 Logged in as ${client.user?.tag || 'Unknown'}`);
   try {
-    await noblox.setCookie(process.env.ROBLOX_COOKIE);
+    await noblox.cookieLogin(process.env.ROBLOX_COOKIE);
     console.log('🔐 Noblox session started');
   } catch (err) {
     console.error('❌ Roblox login failed:', err.message);
-    setTimeout(() => process.exit(1), 5000);
+    // ไม่ exit ทันที เพื่อดู log ต่อเนื่อง
   }
 });
 
