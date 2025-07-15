@@ -29,4 +29,5 @@ RUN npx playwright install --with-deps
 COPY . .
 
 # หากคุณมี script เช่น "start", "build" ให้แก้ตาม
-CMD ["npm", "start"]
+CMD ["node", "index.js"]
+
