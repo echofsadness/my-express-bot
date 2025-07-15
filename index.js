@@ -81,8 +81,13 @@ app.listen(PORT, () => console.log(`🌐 Web server listening on port ${PORT}`))
   console.log('🧪 Logging in with token:', process.env.TOKEN?.slice(0, 10), '...');
   await registerCommands();
   client.login(process.env.TOKEN);
+  
 })();
-
+client.login(process.env.TOKEN).then(() => {
+  console.log('✅ Login success');
+}).catch(err => {
+  console.error('❌ Login failed:', err);
+});
 // 🧯 Error handling
 client.on('error', console.error);
 client.on('shardError', console.error);
