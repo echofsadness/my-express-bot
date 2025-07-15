@@ -14,7 +14,6 @@ const commands = [
     .setName('promote')
     .setDescription('Promote a Roblox user in the group')
     .addStringOption(opt => opt.setName('username').setDescription('Roblox username').setRequired(true)),
-
   new SlashCommandBuilder()
     .setName('demote')
     .setDescription('Demote a Roblox user in the group')
@@ -35,12 +34,18 @@ async function registerCommands() {
 // 🤖 Bot ready event
 client.once('ready', async () => {
   console.log(`🤖 Logged in as ${client.user?.tag || 'Unknown'}`);
+  
+  if (!process.env.ROBLOX_COOKIE) {
+    console.warn('⚠️ ROBLOX_COOKIE is missing!');
+    return;
+  }
+
   try {
     await noblox.cookieLogin(process.env.ROBLOX_COOKIE);
-    console.log('🔐 Noblox session started');
+    console.log('🔐 Roblox session started');
   } catch (err) {
     console.error('❌ Roblox login failed:', err.message);
-    // ไม่ exit ทันที เพื่อดู log ต่อเนื่อง
+    // อย่า exit ทันทีเพื่อให้ container อยู่ต่อ
   }
 });
 
@@ -70,7 +75,7 @@ client.on(Events.InteractionCreate, async interaction => {
   }
 });
 
-// 🌐 Uptime server (for Render or Replit pinging)
+// 🌐 Express server for uptime
 const app = express();
 const PORT = process.env.PORT || 10000;
 app.get('/', (_, res) => res.send('Bot is running'));
@@ -78,17 +83,22 @@ app.listen(PORT, () => console.log(`🌐 Web server listening on port ${PORT}`))
 
 // 🚀 Entry point
 (async () => {
-  console.log('🧪 Logging in with token:', process.env.TOKEN?.slice(0, 10), '...');
+  console.log('🧪 Starting bot...');
+  console.log('🔍 ENV:', {
+    TOKEN: process.env.TOKEN?.slice(0, 10),
+    CLIENT_ID: process.env.CLIENT_ID,
+    GROUP_ID: process.env.GROUP_ID,
+    ROBLOX_COOKIE: process.env.ROBLOX_COOKIE ? '✅ Loaded' : '❌ Missing'
+  });
+
   await registerCommands();
-  client.login(process.env.TOKEN);
-  
+
+  client.login(process.env.TOKEN)
+    .then(() => console.log('✅ Discord login success'))
+    .catch(err => console.error('❌ Discord login failed:', err));
 })();
-client.login(process.env.TOKEN).then(() => {
-  console.log('✅ Login success');
-}).catch(err => {
-  console.error('❌ Login failed:', err);
-});
-// 🧯 Error handling
+
+// 🔥 Error handling
 client.on('error', console.error);
 client.on('shardError', console.error);
 process.on('unhandledRejection', console.error);
