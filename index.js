@@ -41,7 +41,7 @@ client.once('ready', async () => {
   }
 
   try {
-    await noblox.cookieLogin(process.env.ROBLOX_COOKIE);
+     await noblox.setCookie(process.env.ROBLOX_COOKIE);
     console.log('🔐 Roblox session started');
   } catch (err) {
     console.error('❌ Roblox login failed:', err.message);
