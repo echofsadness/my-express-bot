@@ -1,4 +1,4 @@
-FROM node:20-slim
+FROM node:18
 
 WORKDIR /app
 
@@ -7,6 +7,4 @@ RUN npm install
 
 COPY . .
 
-ENV PORT=10000
-
-CMD ["node", "index.js"]
+CMD ["npm", "start"]
