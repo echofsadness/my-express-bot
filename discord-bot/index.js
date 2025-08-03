@@ -1,11 +1,21 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } = require('discord.js');
 const { promote, demote } = require('./commands');
+const express = require('express');
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
+// ✅ Express server สำหรับ Render
+const app = express();
+app.get('/', (_, res) => res.send('Bot is running'));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🌐 Express server listening on port ${PORT}`);
+});
+
+// ✅ ลงทะเบียน Slash Commands เมื่อ bot พร้อม
 client.once('ready', async () => {
   console.log(`🤖 Logged in as ${client.user.tag}`);
 
@@ -33,6 +43,7 @@ client.once('ready', async () => {
   console.log('✅ Slash commands registered');
 });
 
+// ✅ จัดการคำสั่ง Slash
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
 
